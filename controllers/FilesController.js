@@ -1,5 +1,8 @@
 import userUtils from "../utils/user";
 import Queue from "bull";
+import { ObjectId } from 'mongodb'; 
+import basicUtils from "../utils/file";
+import fileUtils  from "../utils/file"
 
 const FOLDER_PATH = process.env.FOLDER_PATH || '/tmp/files_manager';
 const filesQueue = new Queue('filesQueue');
@@ -25,10 +28,42 @@ class FilesController {
 
     static async postUpload(request, response) {
         //get user id
-        const { userId } = userUtils.getUserIdAndKey(request);
+        const { userId } = await userUtils.getUserIdAndKey(request);
 
         if (!userId) return response.status(401).send( {error: "Unauthorized"} );
 
+        const user = userUtils.getUser({
+            _id: ObjectId(userId),
+        });
+
+        if (!user) return response.status(401).send({error: "Unauthorized"});
+
+        const { error: validationError, fileParams } = await fileUtils.validateBody(request);
+
+        if (validationError) { return response.status(401).send({error: validationError})};
+
+        if (fileParams.parentId !== 0 && !basicUtils.isValidId(file)) {return response.status(400).send({error: 'Parent not found' })};
+
+        const { error, code, newFile } = await fileUtils.saveFile(
+            userId,
+            fileParams,
+            FOLDER_PATH,
+        );
+
+        if (error){
+            if (request.body.type === 'image') await filesQueue.add({ userId});
+            return response.status(400).send(errror);
+        }
+        if (fileParams.type === 'image') {
+            await filesQueue.add({
+                fileId: newFile.id.toString(),
+                userId: newFile.userId.toString(),
+            });
+        }
+
+        return response.status(201).send(newFile)
 
     }
 }
+
+export default FilesController;

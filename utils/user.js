@@ -22,6 +22,7 @@
 
         obj.userId = await redisClient.get(obj.key);
 
+        
         return obj;
     },
 
