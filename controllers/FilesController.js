@@ -1,7 +1,7 @@
 import userUtils from "../utils/user";
 import Queue from "bull";
 import { ObjectId } from 'mongodb'; 
-import basicUtils from "../utils/file";
+import basicUtils from "../utils/basic";
 import fileUtils  from "../utils/file"
 
 const FOLDER_PATH = process.env.FOLDER_PATH || '/tmp/files_manager';
@@ -62,6 +62,75 @@ class FilesController {
         }
 
         return response.status(201).send(newFile)
+
+    }
+
+    static async getShow(request, response){
+        /*
+         * retrieve the user based on the token ( return unauthorized if not found)
+         * if no file is linked to the user and id passed as parameter return not found
+         * otherwise return the document
+         */
+         
+        const fileId = request.params.id;
+
+        const { userId } = await userUtils.getUserIdAndKey(request);
+
+        const user = await userUtils.getUser({
+            _id: ObjectId(userId)
+        });
+        
+        if (!user) return response.status(401).send({error: 'Unauthorized'});
+
+        //check mongo condition for valid ids
+        if (!basicUtils.isValidId(fileId) || !basicUtils.isValidId(userId)) {
+             return response.status(404).send({error: 'Not found'}); 
+            } 
+        
+        const result = await fileUtils.getFile({
+            _id: ObjectId(fileId),
+            userId: ObjectId(userId)
+        })
+
+        if (!result) { return response.status(404).send({error: 'Not found'}) }
+
+        const file = fileUtils.processFile(result);
+
+        return response.status(201).send(file);
+
+    } 
+
+    static async getIndex(request, response){
+        /*
+         * Retrieve the user based on the token
+         * return error if user not found
+         * Based on the query params parentId and page return list of file documents
+         * ParentId - 
+         *      No validation of parent id needed if parentId not linked to any user folder return an empty list
+         *      by default the parent id is zero
+         * Pagination - 
+         *      each page should be a max of 20 items
+         *      page query is zero indexed that is 0 (1 - 20th file)
+         *      pagination can be done directly by aggregate of mongodb
+         */
+
+        const { userId } = await userUtils.getUserIdAndKey(request);
+
+        const user = await userUtils.getUser({
+            _id: ObjectId(userId),
+        });
+
+        if (!user) { return response.status(401).send({error: 'Unauthorized'})}
+
+        let parentId = request.query.parentId || '0';
+
+        if (parentId === '0') { parentId = 0 }
+
+        let page = Number(request.query.page) || 0;
+
+        if (Number.isNaN(page)) page = 0;
+
+        if (parentId !== 0 && parentId !== '0')
 
     }
 }

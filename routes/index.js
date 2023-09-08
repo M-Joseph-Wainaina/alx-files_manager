@@ -51,6 +51,17 @@ function controllerRouting(app) {
 	router.post('/files', (req, res) => {
 		FilesController.postUpload(req, res);
 	});
+
+	//retrieve file document based on id
+
+	router.get('/files/:id', (req, res) => {
+		FilesController.getShow(req, res);
+	})
+
+	//retrieve all user file documents based on a parent id and by pagination
+	router.get('/files', (req, res) => {
+		FilesController.getIndex(req, res);
+	});
 }
 
 export default controllerRouting;
