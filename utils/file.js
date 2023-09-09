@@ -92,16 +92,17 @@ const fileUtils = {
                 return {error: err.message, code: 400 };
 
             }
-
-            const result = await dbClient.filesCollection.insertOne(query);
-
-            const file = this.processFile(query);
-
-            const newFile = {id: result.insertedId, ...file};
-
-            return {error: null, newFile};
-
         }
+            
+        const result = await dbClient.filesCollection.insertOne(query);
+
+        const file = this.processFile(query);
+
+        const newFile = {id: result.insertedId, ...file};
+
+        return {error: null, newFile};
+
+        
 
     },
 
@@ -113,6 +114,12 @@ const fileUtils = {
 
         return file;
     },
+
+    async getFilesOfParentId(pipeline) {
+        const filesList = await dbClient.filesCollection.aggregate(pipeline);
+
+        return filesList;
+    }
     
 }
 

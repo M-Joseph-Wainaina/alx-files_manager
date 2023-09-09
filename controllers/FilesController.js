@@ -130,7 +130,35 @@ class FilesController {
 
         if (Number.isNaN(page)) page = 0;
 
-        if (parentId !== 0 && parentId !== '0')
+        if (parentId !== 0 && parentId !== '0'){
+            if (!basicUtils.isValidId(parentId)) { return response.status(404).send({error: 'Not found'}); }
+
+            parentId = ObjectId(parentId);
+
+            const folder = await fileUtils.getFile({
+                _id: ObjectId(parentId),
+            })
+
+            if (!folder || folder.type !== 'folder') { return response.status(200).send([]); }
+        }
+
+        const pipeline = [
+            { $match: { parentId }  },
+            { $skip: page * 20 },
+            { $limit: 20 }
+        ];
+
+
+        const fileCursor = await fileUtils.getFilesOfParentId(pipeline);
+
+        const fileList = [];
+
+        await fileCursor.forEach((doc) => {
+            const document = fileUtils.processFile(doc);
+            fileList.push(document);
+        });
+
+        return response.status(200).send(fileList);
 
     }
 }
