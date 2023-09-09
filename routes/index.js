@@ -63,7 +63,15 @@ function controllerRouting(app) {
 		FilesController.getIndex(req, res);
 	});
 
-	
+	//publish a file
+	router.post('/files/:id/publish', (req, res) => {
+		FilesController.putPublish(req, res);
+	});
+
+	//unpublish a file
+	router.post('/files/:id/unpublish', (req, res) => {
+		FilesController.putUnpublish(req, res);
+	})
 }
 
 export default controllerRouting;

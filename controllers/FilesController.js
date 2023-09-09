@@ -161,6 +161,23 @@ class FilesController {
         return response.status(200).send(fileList);
 
     }
+    /*
+     * sets isPublic to true
+     * authorize user based on token
+     * if no file is linked to the user and id passed as argument return Not found status 404
+     * otherwise update isPublic to true
+     * return the file document with a status code 200
+     */
+
+    static async putPublish(request, response){
+
+        const { error, code, updatedFile } = await fileUtils.publishUpublish(
+            request,
+            true,
+        )
+
+
+    }
 }
 
 export default FilesController;

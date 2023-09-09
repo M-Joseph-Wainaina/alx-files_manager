@@ -116,10 +116,15 @@ const fileUtils = {
     },
 
     async getFilesOfParentId(pipeline) {
+       
         const filesList = await dbClient.filesCollection.aggregate(pipeline);
 
         return filesList;
-    }
+    }, 
+
+    async publishUnpulish(request, setPublish ){
+        
+    } 
     
 }
 
