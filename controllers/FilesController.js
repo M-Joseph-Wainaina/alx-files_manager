@@ -2,7 +2,8 @@ import userUtils from "../utils/user";
 import Queue from "bull";
 import { ObjectId } from 'mongodb'; 
 import basicUtils from "../utils/basic";
-import fileUtils  from "../utils/file"
+import fileUtils  from "../utils/file";
+import mime from 'mime-types';
 
 const FOLDER_PATH = process.env.FOLDER_PATH || '/tmp/files_manager';
 const filesQueue = new Queue('filesQueue');
@@ -171,12 +172,54 @@ class FilesController {
 
     static async putPublish(request, response){
 
-        const { error, code, updatedFile } = await fileUtils.publishUpublish(
+        const { error, code, updatedFile } = await fileUtils.publishUnpulish(
             request,
             true,
         )
+        
+        if (error) { return response.status(code).send({ error }); }
 
+        return response.status(code).send(updatedFile);
 
+    }
+    static async putUnpublish(request, response){
+
+        const { error, code, updatedFile } = await fileUtils.publishUnpulish(
+            request,
+            false,
+        )
+        
+        if (error) { return response.status(code).send({ error }); }
+
+        return response.status(code).send(updatedFile);
+
+    }
+    static async getFile(request, response)
+    {
+        const { userId } = fileUtils.getUserIdAndKey(request);
+
+        const { id: fileId } = request.params;
+
+        const user = await fileUtils.getUser({
+            _id: userId,
+        });
+
+       
+        if (!basicUtils.isValidId(fileId)) {return response.status(404).send({error: "Not found"}); }
+
+        const file = await fileUtils.getFile({
+            _id: ObjectId(fileId),
+        });
+
+        if (!file || !fileUtils.isOwnerAndPublic(file, userId)) { return  response.status(404).send({ error: "Unauthorized"}); }
+
+        if (file.type === 'folder'){
+            return response.status(400).send({error: "A folder has no contents"});
+        }
+
+        const { error, code, data } = await fileUtils.getData(file);
+
+        
     }
 }
 

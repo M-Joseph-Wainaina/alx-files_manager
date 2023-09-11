@@ -64,14 +64,19 @@ function controllerRouting(app) {
 	});
 
 	//publish a file
-	router.post('/files/:id/publish', (req, res) => {
+	router.put('/files/:id/publish', (req, res) => {
 		FilesController.putPublish(req, res);
 	});
 
 	//unpublish a file
-	router.post('/files/:id/unpublish', (req, res) => {
+	router.put('/files/:id/unpublish', (req, res) => {
 		FilesController.putUnpublish(req, res);
-	})
+	});
+
+	//get file data
+	router.get('/files/:id/data', (req, res) => {
+		FilesController.getData(req, res);
+	});
 }
 
 export default controllerRouting;

@@ -3,6 +3,7 @@ import basicUtils from "./basic";
 import { v4 as uuidv4 } from 'uuid';
 import { promises as fspromises } from 'fs';
 import { ObjectId } from 'mongodb';
+import userUtils from "./user";
 
 
 const fileUtils = {
@@ -123,9 +124,90 @@ const fileUtils = {
     }, 
 
     async publishUnpulish(request, setPublish ){
+        const {id: fileId } = request.params;
+
+        if (!basicUtils.isValidId(fileId)) { return { error: 'Unauthorized', code: 401 }; }
+
+        const { userId } = await userUtils.getUserIdAndKey(request);
+
+        if (!basicUtils.isValidId(userId)) { return { error: 'Unauthorized', code: 401}; }
+
+        const user = await userUtils.getUser({
+            _id: ObjectId(userId),
+        });
+
+        if (!user) { return {error: 'Unauthorized', code: 401 }; }
+
+        const file = await this.getFile({
+            _id: ObjectId(fileId),
+            userId: ObjectId(userId),
+        });
+
+        console.log(fileId, userId);
+     
+
+        if (!file) return { error: 'Not found', code: 404 };
+
+        const result = await this.updateFile(
+            {
+                _id: ObjectId(fileId),
+                userId: ObjectId(userId),
+            },
+            { $set: { isPublic: setPublish } },
         
-    } 
-    
+        );
+
+        
+
+        const {
+             _id: id,
+             userId: resultUserId,
+             name,
+             type,
+             isPublic,
+             parentId,
+        } = result.value;
+
+        const updatedFile = {
+            id,
+            userId: resultUserId,
+            name,
+            type,
+            isPublic,
+            parentId,
+        };
+
+        return {error: null, code: 200, updatedFile };
+    },
+
+    /**
+     * @query {obj} query to find document to update
+     * @set {obj} object with query info to update in mongo
+     * @return {object} updated file
+     */
+
+    async updateFile(query, set) {
+        const fileList = await dbClient.filesCollection.findOneAndUpdate(
+            query,
+            set,
+            { returnOriginal: false},
+        );
+        return fileList;
+    },
+
+    isOwnerAndIsPulic(file, userId){
+        if(
+            ( !file.isPublic && !userId ) ||
+            ( userId && file.userId.toString() !== userId && !file.isPublic )
+        ) { return false }
+        
+        return true;
+    },
+
+    async getFileData(file) {
+        
+    }
+            
 }
 
 export default fileUtils;
