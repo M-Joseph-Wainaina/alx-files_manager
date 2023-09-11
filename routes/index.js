@@ -75,7 +75,7 @@ function controllerRouting(app) {
 
 	//get file data
 	router.get('/files/:id/data', (req, res) => {
-		FilesController.getData(req, res);
+		FilesController.getFile(req, res);
 	});
 }
 

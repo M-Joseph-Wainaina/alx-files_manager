@@ -182,6 +182,7 @@ class FilesController {
         return response.status(code).send(updatedFile);
 
     }
+
     static async putUnpublish(request, response){
 
         const { error, code, updatedFile } = await fileUtils.publishUnpulish(
@@ -194,24 +195,21 @@ class FilesController {
         return response.status(code).send(updatedFile);
 
     }
+
     static async getFile(request, response)
     {
-        const { userId } = fileUtils.getUserIdAndKey(request);
+        const { userId } = userUtils.getUserIdAndKey(request);
 
         const { id: fileId } = request.params;
 
-        const user = await fileUtils.getUser({
-            _id: userId,
-        });
-
-       
+             
         if (!basicUtils.isValidId(fileId)) {return response.status(404).send({error: "Not found"}); }
 
         const file = await fileUtils.getFile({
             _id: ObjectId(fileId),
         });
 
-        if (!file || !fileUtils.isOwnerAndPublic(file, userId)) { return  response.status(404).send({ error: "Unauthorized"}); }
+        if (!file || !fileUtils.isOwnerAndIsPublic(file, userId)) { return  response.status(404).send({ error: "Unauthorized"}); }
 
         if (file.type === 'folder'){
             return response.status(400).send({error: "A folder has no contents"});
@@ -219,7 +217,14 @@ class FilesController {
 
         const { error, code, data } = await fileUtils.getData(file);
 
-        
+        if (error) { return  response.status(code).send({ error }); }
+    
+        const mimeType = mime.contentType(file.name);
+
+        response.setHeader('Content-Type', mimeType);
+
+        return response.status(200).send(data);
+    
     }
 }
 

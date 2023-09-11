@@ -67,7 +67,7 @@ const fileUtils = {
 
         let { parentId } = fileParams;
 
-        if ( parentId !== 0 )parentId = Objectid(parentId);
+        if ( parentId !== 0 )parentId = ObjectId(parentId);
         
         const query = {
             userId: ObjectId(userId),
@@ -195,7 +195,7 @@ const fileUtils = {
         return fileList;
     },
 
-    isOwnerAndIsPulic(file, userId){
+    isOwnerAndIsPublic(file, userId){
         if(
             ( !file.isPublic && !userId ) ||
             ( userId && file.userId.toString() !== userId && !file.isPublic )
@@ -204,10 +204,22 @@ const fileUtils = {
         return true;
     },
 
-    async getFileData(file) {
-        
-    }
+    async getData(file) {
+        let { localPath } = file;
+        let data;
+
+        try {
+           data = await fspromises.readFile(localPath);
+        } catch (error) {
+            return {error: 'Not found', code: 404};
+        }
+
+        return { data };
+
+
+
+    },
             
-}
+};
 
 export default fileUtils;
