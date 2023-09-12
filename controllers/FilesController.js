@@ -202,6 +202,8 @@ class FilesController {
         const { userId } = userUtils.getUserIdAndKey(request);
 
         const { id: fileId } = request.params;
+        const size = request.query.size || 0;
+
 
              
         if (!basicUtils.isValidId(fileId)) {return response.status(404).send({error: "Not found"}); }
@@ -216,7 +218,7 @@ class FilesController {
             return response.status(400).send({error: "A folder has no contents"});
         }
 
-        const { error, code, data } = await fileUtils.getData(file);
+        const { error, code, data } = await fileUtils.getData(file, size);
 
         if (error) { return  response.status(code).send({ error }); }
     

@@ -204,9 +204,11 @@ const fileUtils = {
         return true;
     },
 
-    async getData(file) {
+    async getData(file, size) {
         let { localPath } = file;
         let data;
+
+        if (size) localPath = `${localPath}_${size}`;
 
         try {
            data = await fspromises.readFile(localPath);
@@ -215,8 +217,6 @@ const fileUtils = {
         }
 
         return { data };
-
-
 
     },
             
