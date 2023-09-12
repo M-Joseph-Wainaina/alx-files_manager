@@ -62,7 +62,7 @@ const fileUtils = {
     },
 
     async saveFile(userId, fileParams, FOLDER_PATH ) {
-        console.log(userId, fileParams, FOLDER_PATH);
+      
         const { name, type, isPublic, data } = fileParams;
 
         let { parentId } = fileParams;
@@ -143,7 +143,7 @@ const fileUtils = {
             userId: ObjectId(userId),
         });
 
-        console.log(fileId, userId);
+     
      
 
         if (!file) return { error: 'Not found', code: 404 };
