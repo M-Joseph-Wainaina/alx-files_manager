@@ -3,13 +3,15 @@ import basicUtils from './utils/basic';
 import fileUtils from './utils/file';
 import { ObjectId } from 'mongodb';
 import { promises as fspromises } from 'fs';
+import userUtils from './utils/user';
 
 
 const imageThumbnail = require('image-thumbnail');
 
 const fileQueue = new Queue('filesQueue');
-console.log('generating image thumbnails');
+const userQueue = new Queue('usersQueue');
 
+console.log('generating image thumbnails');
 
 fileQueue.process(async (job) => {
     const {fileId , userId } = job.data;
@@ -49,4 +51,23 @@ fileQueue.process(async (job) => {
         }
     });
 
+});
+
+userQueue.process(async (job) => {
+    const { userId } = job.data;
+
+    if (!userId) {
+        console.log('Missing userId');
+        throw new Error('Missing userId');
+    }
+
+    if (!basicUtils.isValidId(userId)) throw new Error('User not fond');
+
+    const user = await userUtils.getUser({
+        _id: ObjectId(userId),
+    })
+
+    if (!user) throw new Error('User not found');
+
+    console.log(`welcome ${user.email}`);
 });
