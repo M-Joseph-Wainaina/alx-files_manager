@@ -18,12 +18,8 @@ class RedisClient {
     * @return {boolean} true if connection alive or false if not
     */
     
-    isAlive(){
-        this.client.on('connect' , () => {
-            return true;
-        });
-        
-        return false;
+    isAlive() {
+        return this.client.connected;
     }
     /*
      * return a value for a given key
